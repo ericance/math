@@ -4,10 +4,13 @@ local lines = Instance.new("Folder")
 lines.Name = "Lines"
 lines.Parent = workspace
 
-local function createAttachment(position: Vector3)
+local function createAttachment(position: Vector3?)
 	local attachment = Instance.new("Attachment")
-	-- attachment.Visible = true
-	attachment.Position = position
+	if position then
+		attachment.Position = position
+	end
+
+	attachment.Visible = true
 	attachment.Parent = workspace
 	return attachment
 end
@@ -26,7 +29,7 @@ function Math:Line(a0: Vector3, a1: Vector3)
 	return line
 end
 
-function Math:Grid(gridSize: number, cellSize: number)
+function Math:Grid(gridSize: number, cellSize: number, origin: Vector3)
 	-- TODO: connect the parallel lines
 	local grid = Instance.new("Folder")
 	grid.Name = "Grid"
@@ -34,6 +37,10 @@ function Math:Grid(gridSize: number, cellSize: number)
 
 	if not cellSize then
 		cellSize = 4
+	end
+	
+	if not origin then
+		origin = Vector3.zero
 	end
 
 	-- Create attachments
@@ -45,7 +52,9 @@ function Math:Grid(gridSize: number, cellSize: number)
 		attachments[x] = {}
 
 		for z = 1, gridSize do
-			local a = createAttachment(Vector3.new(x * cellSize, 0, z * cellSize))
+			local a = createAttachment()
+			-- (x-1) and (z-1) is to support if the origin is 0, because the for loops start at 1
+			a.Position = origin + Vector3.new((x-1) * cellSize, 0, (z-1) * cellSize)
 			table.insert(attachments[x], a)
 			a.Parent = row
 			a.Name = z
@@ -55,7 +64,7 @@ function Math:Grid(gridSize: number, cellSize: number)
 	-- Create beams
 	for x = 1, gridSize do
 		for z = 1, gridSize do
-			if attachments[x][z+1] then
+			if attachments[x][z + 1] then
 				-- horizontal
 				self:Line(attachments[x][z], attachments[x][z + 1])
 			end
